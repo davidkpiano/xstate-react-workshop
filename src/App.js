@@ -14,10 +14,13 @@ function Screen({ children, onSubmit = undefined }) {
   return <section className="screen">{children}</section>;
 }
 
-function QuestionScreen({ onClickGood, onClickBad, onClose }) {
+function QuestionScreen({ onClickGood, onClickBad, onClose, currentState }) {
   return (
     <Screen>
-      <header>How was your experience?</header>
+      {currentState.context.dog ? (
+        <img src={currentState.context.dog} height={200} />
+      ) : null}
+      <header>How was your experience with this dog?</header>
       <button onClick={onClickGood} data-variant="good">
         Good
       </button>
@@ -43,6 +46,9 @@ function FormScreen({ onSubmit, onClose, currentState }) {
       {currentState.matches({ form: 'pending' }) ? (
         <>
           <header>Care to tell us why?</header>
+          {currentState.context.error ? (
+            <div style={{ color: 'red' }}>{currentState.context.error}</div>
+          ) : null}
           <textarea
             name="response"
             placeholder="Complain here"
@@ -66,10 +72,11 @@ function FormScreen({ onSubmit, onClose, currentState }) {
   );
 }
 
-function ThanksScreen({ onClose, response = '' }) {
+function ThanksScreen({ onClose, currentState }) {
+  const { message } = currentState.context.feedback;
   return (
     <Screen>
-      <header>Thanks for your feedback: {response}</header>
+      <header>Thanks for your feedback: {message}</header>
       <button title="close" onClick={onClose} />
     </Screen>
   );
@@ -91,21 +98,32 @@ const formConfig = {
       invoke: {
         id: 'submitForm',
         src: (context, event) =>
-          new Promise(resolve => {
+          new Promise((resolve, reject) => {
             setTimeout(() => {
-              resolve({
-                timestamp: Date.now(),
-                feedback: context.response
-              });
-            }, 3000);
+              const error = Math.random() < 0.5;
+              if (error) {
+                reject({
+                  message: 'Something went wrong'
+                });
+              } else {
+                resolve({
+                  timestamp: Date.now(),
+                  message: 'Feedback: ' + context.response
+                });
+              }
+            }, 1500);
           }),
         onDone: {
           target: 'submitted',
-          actions: (context, event) => {
-            alert('took this transition!');
-            // event.data
-            console.log(event);
-          }
+          actions: assign({
+            feedback: (_, e) => e.data
+          })
+        },
+        onError: {
+          target: 'pending',
+          actions: assign({
+            error: (_, event) => event.data.message
+          })
         }
       },
       on: {
@@ -124,11 +142,23 @@ const feedbackMachine = Machine(
   {
     initial: 'question',
     context: {
-      response: ''
+      response: '',
+      feedback: undefined,
+      dog: undefined
     },
     states: {
       question: {
-        activities: 'pinging',
+        invoke: {
+          src: () =>
+            fetch('https://dog.ceo/api/breeds/image/random').then(data =>
+              data.json()
+            ),
+          onDone: {
+            actions: assign({
+              dog: (_, e) => e.data.message
+            })
+          }
+        },
         on: {
           GOOD: {
             target: 'thanks',
@@ -180,6 +210,7 @@ export function Feedback() {
 
   return current.matches('question') ? (
     <QuestionScreen
+      currentState={current}
       onClickGood={() => {
         send('GOOD');
       }}
@@ -202,7 +233,7 @@ export function Feedback() {
     />
   ) : current.matches('thanks') ? (
     <ThanksScreen
-      response={current.context.response}
+      currentState={current}
       onClose={() => {
         send('CLOSE');
       }}
