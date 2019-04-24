@@ -105,10 +105,10 @@ const formConfig = {
           })
         },
         onError: {
-          target: 'pending',
-          actions: assign({
-            error: (_, event) => event.data.message
-          })
+          target: 'loading',
+          actions: () => {
+            console.log('Server is flaky, retrying...');
+          }
         }
       },
       on: {
@@ -190,7 +190,7 @@ const feedbackMachine = Machine(
       feedbackService: (context, event) =>
         new Promise((resolve, reject) => {
           setTimeout(() => {
-            const error = Math.random() < 0.5;
+            const error = Math.random() < 0.9;
             if (error) {
               reject({
                 message: 'Something went wrong'
