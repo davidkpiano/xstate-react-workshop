@@ -53,6 +53,15 @@ describe('feedback app', () => {
           : '';
 
         it(`reaches ${key} ${eventString}`, async () => {
+          Feedback.machine = Feedback.machine.withConfig({
+            services: {
+              someService: () =>
+                new Promise(res => {
+                  console.log('test service');
+                  res(true);
+                })
+            }
+          });
           // Render the feedback app
           const {
             getByText,
