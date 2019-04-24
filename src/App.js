@@ -46,13 +46,13 @@ function FormScreen({ onSubmit, onClose }) {
       <textarea
         name="response"
         placeholder="Complain here"
-        onKeyDown={e => {
-          if (e.key === 'Escape') {
-            e.stopPropagation();
+        onKeyDown={event => {
+          if (event.key === 'Escape') {
+            event.stopPropagation();
           }
         }}
         value={response}
-        onChange={e => setResponse(e.target.value)}
+        onChange={event => setResponse(event.target.value)}
       />
       <button>Submit</button>
       <button title="close" type="button" onClick={onClose} />
@@ -60,10 +60,10 @@ function FormScreen({ onSubmit, onClose }) {
   );
 }
 
-function ThanksScreen({ onClose }) {
+function ThanksScreen({ onClose, response = '' }) {
   return (
     <Screen>
-      <header>Thanks for your feedback.</header>
+      <header>Thanks for your feedback: {response}</header>
       <button title="close" onClick={onClose} />
     </Screen>
   );
@@ -138,7 +138,7 @@ export function Feedback() {
   ) : current.matches('form') ? (
     <FormScreen
       onSubmit={value => {
-        send({ type: 'SUBMIT', value });
+        send({ type: 'SUBMIT', value: value });
       }}
       onClose={() => {
         send('CLOSE');
@@ -146,6 +146,7 @@ export function Feedback() {
     />
   ) : current.matches('thanks') ? (
     <ThanksScreen
+      response={current.context.response}
       onClose={() => {
         send('CLOSE');
       }}
