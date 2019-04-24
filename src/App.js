@@ -64,38 +64,35 @@ function ThanksScreen({ onClose }) {
   );
 }
 
-function feedbackReducer(state, event) {
-  switch (state) {
-    case 'question':
-      switch (event.type) {
-        case 'GOOD':
-          return 'thanks';
-        case 'BAD':
-          return 'form';
-        case 'CLOSE':
-          return 'closed';
-        default:
-          return state;
+const feedbackMachine = {
+  initial: 'question',
+  states: {
+    question: {
+      on: {
+        GOOD: 'thanks',
+        BAD: 'form',
+        CLOSE: 'closed'
       }
-    case 'form':
-      switch (event.type) {
-        case 'SUBMIT':
-          return 'thanks';
-        case 'CLOSE':
-          return 'closed';
-        default:
-          return state;
+    },
+    form: {
+      on: {
+        SUBMIT: 'thanks',
+        CLOSE: 'closed'
       }
-    case 'thanks':
-      switch (event.type) {
-        case 'CLOSE':
-          return 'closed';
-        default:
-          return state;
+    },
+    thanks: {
+      on: {
+        CLOSE: 'closed'
       }
-    default:
-      return state;
+    },
+    closed: {}
   }
+};
+
+function feedbackReducer(state, event) {
+  const nextState = feedbackMachine.states[state].on[event.type] || state;
+
+  return nextState;
 }
 
 export function Feedback() {
@@ -103,14 +100,31 @@ export function Feedback() {
 
   return current === 'question' ? (
     <QuestionScreen
-      onClickGood={() => {}}
-      onClickBad={() => {}}
-      onClose={() => {}}
+      onClickGood={() => {
+        send({ type: 'GOOD' });
+      }}
+      onClickBad={() => {
+        send({ type: 'BAD' });
+      }}
+      onClose={() => {
+        send({ type: 'CLOSE' });
+      }}
     />
   ) : current === 'form' ? (
-    <FormScreen onSubmit={value => {}} onClose={() => {}} />
+    <FormScreen
+      onSubmit={value => {
+        send({ type: 'SUBMIT' });
+      }}
+      onClose={() => {
+        send({ type: 'CLOSE' });
+      }}
+    />
   ) : current === 'thanks' ? (
-    <ThanksScreen onClose={() => {}} />
+    <ThanksScreen
+      onClose={() => {
+        send({ type: 'CLOSE' });
+      }}
+    />
   ) : current === 'closed' ? null : null;
 }
 
