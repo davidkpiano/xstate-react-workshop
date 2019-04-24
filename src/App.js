@@ -11,7 +11,7 @@ function useKeyDown(key, onKeyDown) {
     window.addEventListener('keydown', handler);
 
     return () => window.removeEventListener('keydown', handler);
-  }, [onKeyDown]);
+  }, [onKeyDown, key]);
 }
 
 function Screen({ children, onSubmit = undefined }) {
@@ -145,10 +145,12 @@ export function Feedback() {
   }
 }
 
-export default function App() {
+export function App() {
   return (
     <main className="app">
       <Feedback />
     </main>
   );
 }
+
+export default App;

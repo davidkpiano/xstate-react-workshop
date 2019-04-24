@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "devDependencies": {
+    "@babel/core": "^7.4.3",
+    "@storybook/react": "^5.0.10",
+    "babel-loader": "^8.0.5",
     "chai": "^4.2.0",
     "react-scripts": "3.0.0",
     "react-testing-library": "^6.1.2"
@@ -19,7 +22,8 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "storybook": "start-storybook"
   },
   "eslintConfig": {
     "extends": "react-app"
