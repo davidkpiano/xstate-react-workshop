@@ -22,12 +22,24 @@ const formConfig = {
             feedback: (_, e) => e.data
           })
         },
-        onError: {
-          target: 'loading',
-          actions: () => {
-            console.log('Server is flaky, retrying...');
+        onError: [
+          {
+            target: 'loading',
+            cond: ctx => ctx.retries < 5,
+            actions: [
+              assign({
+                retries: ctx => ctx.retries + 1
+              }),
+              () => {
+                console.log('Server is flaky, retrying...');
+              }
+            ]
+          },
+          {
+            target: 'pending',
+            actions: assign({ retries: 0 })
           }
-        }
+        ]
       },
       on: {
         SUCCESS: 'submitted',
@@ -45,6 +57,7 @@ export const feedbackMachine = Machine(
   {
     initial: 'question',
     context: {
+      retries: 0,
       response: '',
       feedback: undefined,
       dog: undefined
