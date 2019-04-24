@@ -1,4 +1,6 @@
 import React, { useReducer, useEffect } from 'react';
+import { getSimplePaths } from '@xstate/graph';
+import { Machine } from 'xstate';
 
 function useKeyDown(key, onKeyDown) {
   useEffect(() => {

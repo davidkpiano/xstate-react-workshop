@@ -7,6 +7,39 @@ import { assert } from 'chai';
 
 afterEach(cleanup);
 
+const feedbackMachine = Machine({
+  id: 'feedback',
+  initial: 'question',
+  states: {
+    question: {
+      on: {
+        CLICK_GOOD: 'thanks',
+        CLICK_BAD: 'form',
+        CLOSE: 'closed',
+        ESC: 'closed'
+      }
+    },
+    form: {
+      on: {
+        SUBMIT: 'thanks',
+        CLOSE: 'closed',
+        ESC: 'closed'
+      }
+    },
+    thanks: {
+      on: {
+        CLOSE: 'closed',
+        ESC: 'closed'
+      }
+    },
+    closed: {
+      type: 'final'
+    }
+  }
+});
+
+const simplePaths = getSimplePaths(feedbackMachine);
+
 describe('feedback app (manual tests)', () => {
   it('should show the thanks screen when "Good" is clicked', () => {
     const { getByText } = render(<Feedback />);
@@ -38,13 +71,13 @@ describe('feedback app (manual tests)', () => {
 });
 
 describe('feedback app', () => {
-  const simplePaths = [];
-
   Object.keys(simplePaths).forEach(key => {
     const { paths, state: targetState } = simplePaths[key];
 
     describe(`state: ${key}`, () => {
       afterEach(cleanup);
+
+      console.log(key);
 
       paths.forEach(path => {
         const eventString = path.length
