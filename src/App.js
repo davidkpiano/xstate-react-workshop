@@ -97,22 +97,7 @@ const formConfig = {
     loading: {
       invoke: {
         id: 'submitForm',
-        src: (context, event) =>
-          new Promise((resolve, reject) => {
-            setTimeout(() => {
-              const error = Math.random() < 0.5;
-              if (error) {
-                reject({
-                  message: 'Something went wrong'
-                });
-              } else {
-                resolve({
-                  timestamp: Date.now(),
-                  message: 'Feedback: ' + context.response
-                });
-              }
-            }, 1500);
-          }),
+        src: 'feedbackService',
         onDone: {
           target: 'submitted',
           actions: assign({
@@ -149,10 +134,7 @@ const feedbackMachine = Machine(
     states: {
       question: {
         invoke: {
-          src: () =>
-            fetch('https://dog.ceo/api/breeds/image/random').then(data =>
-              data.json()
-            ),
+          src: 'dogFetcher',
           onDone: {
             actions: assign({
               dog: (_, e) => e.data.message
@@ -199,6 +181,28 @@ const feedbackMachine = Machine(
       formValid: (context, event) => {
         return event.value.length > 0;
       }
+    },
+    services: {
+      dogFetcher: () =>
+        fetch('https://dog.ceo/api/breeds/image/random').then(data =>
+          data.json()
+        ),
+      feedbackService: (context, event) =>
+        new Promise((resolve, reject) => {
+          setTimeout(() => {
+            const error = Math.random() < 0.5;
+            if (error) {
+              reject({
+                message: 'Something went wrong'
+              });
+            } else {
+              resolve({
+                timestamp: Date.now(),
+                message: 'Feedback: ' + context.response
+              });
+            }
+          }, 1500);
+        })
     }
   }
 );
