@@ -80,9 +80,7 @@ const formConfig = {
       on: {
         SUBMIT: {
           target: 'loading', // add guard
-          actions: assign({
-            response: (ctx, e) => e.value
-          }),
+          actions: 'updateResponse',
           cond: 'formValid'
         }
       }
@@ -111,6 +109,7 @@ const feedbackMachine = Machine(
     },
     states: {
       question: {
+        activities: 'pinging',
         on: {
           GOOD: {
             target: 'thanks',
@@ -135,11 +134,25 @@ const feedbackMachine = Machine(
     }
   },
   {
+    activities: {
+      pinging: (ctx, e) => {
+        const i = setInterval(() => {
+          console.log('ping! ' + Date.now());
+        }, 1000);
+
+        return () => {
+          clearInterval(i);
+        };
+      }
+    },
     actions: {
       logExit: (context, event) => {},
       alertInvalid: () => {
         alert('You did not fill out the form!!');
-      }
+      },
+      updateResponse: assign({
+        response: (ctx, e) => e.value
+      })
     },
     guards: {
       formValid: (context, event) => {
