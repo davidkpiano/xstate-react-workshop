@@ -58,7 +58,9 @@ function FormScreen({ onSubmit, onClose, currentState }) {
           <button title="close" type="button" onClick={onClose} />
         </>
       ) : currentState.matches({ form: 'loading' }) ? (
-        <div>Submitting...</div>
+        <div>
+          Submitting... <button title="close" type="button" onClick={onClose} />
+        </div>
       ) : null}
     </Screen>
   );
@@ -86,12 +88,29 @@ const formConfig = {
       }
     },
     loading: {
+      invoke: {
+        id: 'submitForm',
+        src: (context, event) =>
+          new Promise(resolve => {
+            setTimeout(() => {
+              resolve({
+                timestamp: Date.now(),
+                feedback: context.response
+              });
+            }, 3000);
+          }),
+        onDone: {
+          target: 'submitted',
+          actions: (context, event) => {
+            alert('took this transition!');
+            // event.data
+            console.log(event);
+          }
+        }
+      },
       on: {
         SUCCESS: 'submitted',
         FAILURE: 'error'
-      },
-      after: {
-        2000: 'submitted'
       }
     }, // handle SUCCESS
     submitted: {
@@ -122,6 +141,9 @@ const feedbackMachine = Machine(
       },
       form: {
         ...formConfig,
+        on: {
+          CLOSE: 'closed'
+        },
         onDone: 'thanks'
       },
       thanks: {
@@ -134,17 +156,6 @@ const feedbackMachine = Machine(
     }
   },
   {
-    activities: {
-      pinging: (ctx, e) => {
-        const i = setInterval(() => {
-          console.log('ping! ' + Date.now());
-        }, 1000);
-
-        return () => {
-          clearInterval(i);
-        };
-      }
-    },
     actions: {
       logExit: (context, event) => {},
       alertInvalid: () => {
