@@ -1,4 +1,18 @@
-import React from 'react';
+import React, { useReducer, useEffect } from 'react';
+
+function useKeyDown(key, onKeyDown) {
+  useEffect(() => {
+    const handler = e => {
+      if (e.key === key) {
+        onKeyDown();
+      }
+    };
+
+    window.addEventListener('keydown', handler);
+
+    return () => window.removeEventListener('keydown', handler);
+  }, [onKeyDown, key]);
+}
 
 function Screen({ children, onSubmit = undefined }) {
   if (onSubmit) {
@@ -13,6 +27,8 @@ function Screen({ children, onSubmit = undefined }) {
 }
 
 function QuestionScreen({ onClickGood, onClickBad, onClose }) {
+  useKeyDown('Escape', onClose);
+
   return (
     <Screen>
       <header>How was your experience?</header>
@@ -28,6 +44,8 @@ function QuestionScreen({ onClickGood, onClickBad, onClose }) {
 }
 
 function FormScreen({ onSubmit, onClose }) {
+  useKeyDown('Escape', onClose);
+
   return (
     <Screen
       onSubmit={e => {
@@ -56,6 +74,8 @@ function FormScreen({ onSubmit, onClose }) {
 }
 
 function ThanksScreen({ onClose }) {
+  useKeyDown('Escape', onClose);
+
   return (
     <Screen>
       <header>Thanks for your feedback.</header>
@@ -99,17 +119,30 @@ function feedbackReducer(state, event) {
 }
 
 export function Feedback() {
-  return (
-    <>
-      <QuestionScreen
-        onClickGood={() => {}}
-        onClickBad={() => {}}
-        onClose={() => {}}
-      />
-      <FormScreen onSubmit={value => {}} onClose={() => {}} />
-      <ThanksScreen onClose={() => {}} />
-    </>
-  );
+  const [state, send] = useReducer(feedbackReducer, 'question');
+
+  switch (state) {
+    case 'question':
+      return (
+        <QuestionScreen
+          onClickGood={() => send({ type: 'GOOD' })}
+          onClickBad={() => send({ type: 'BAD' })}
+          onClose={() => send({ type: 'CLOSE' })}
+        />
+      );
+    case 'form':
+      return (
+        <FormScreen
+          onSubmit={value => send({ type: 'SUBMIT', value })}
+          onClose={() => send({ type: 'CLOSE' })}
+        />
+      );
+    case 'thanks':
+      return <ThanksScreen onClose={() => send({ type: 'CLOSE' })} />;
+    case 'closed':
+    default:
+      return null;
+  }
 }
 
 export function App() {
