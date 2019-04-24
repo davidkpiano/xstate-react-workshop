@@ -86,12 +86,22 @@ describe('feedback app', () => {
 
         it(`reaches ${key} ${eventString}`, async () => {
           // Render the feedback app
-          const { getByText } = render(<Feedback />);
+          const { getByText, queryByText } = render(<Feedback />);
 
           // Add heuristics for asserting that the state is correct
           async function assertState(state) {
             if (state.matches('question')) {
               assert.ok(getByText('How was your experience?'));
+            } else if (state.matches('form')) {
+              assert.ok(getByText('Care to tell us why?'));
+            } else if (state.matches('thanks')) {
+              assert.ok(getByText('Thanks for your feedback.'));
+            } else if (state.matches('closed')) {
+              assert.isNull(queryByText('How was your experience?'));
+              assert.isNull(queryByText('Care to tell us why?'));
+              assert.isNull(queryByText('Thanks for your feedback.'));
+            } else {
+              throw new Error(`Unknown state: ${JSON.stringify(state.value)}`);
             }
           }
 
