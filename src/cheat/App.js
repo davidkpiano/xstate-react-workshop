@@ -29,8 +29,6 @@ function Screen({ children, onSubmit = undefined }) {
 }
 
 function QuestionScreen({ onClickGood, onClickBad, onClose }) {
-  useKeyDown('Escape', onClose);
-
   return (
     <Screen>
       <header>How was your experience?</header>
@@ -46,8 +44,6 @@ function QuestionScreen({ onClickGood, onClickBad, onClose }) {
 }
 
 function FormScreen({ onSubmit, onClose }) {
-  useKeyDown('Escape', onClose);
-
   return (
     <Screen
       onSubmit={e => {
@@ -76,8 +72,6 @@ function FormScreen({ onSubmit, onClose }) {
 }
 
 function ThanksScreen({ onClose }) {
-  useKeyDown('Escape', onClose);
-
   return (
     <Screen>
       <header>Thanks for your feedback.</header>
@@ -91,7 +85,7 @@ function feedbackReducer(state, event) {
     case 'question':
       switch (event.type) {
         case 'GOOD':
-          return 'thanks';
+          return 'form';
         case 'BAD':
           return 'form';
         case 'CLOSE':
@@ -122,6 +116,7 @@ function feedbackReducer(state, event) {
 
 export function Feedback() {
   const [state, send] = useReducer(feedbackReducer, 'question');
+  useKeyDown('Escape', () => send({ type: 'CLOSE' }));
 
   switch (state) {
     case 'question':

@@ -13,7 +13,7 @@ const feedbackMachine = Machine({
   states: {
     question: {
       on: {
-        CLICK_GOOD: 'thanks',
+        CLICK_GOOD: 'form',
         CLICK_BAD: 'form',
         CLOSE: 'closed',
         ESC: 'closed'
@@ -22,8 +22,12 @@ const feedbackMachine = Machine({
     form: {
       on: {
         SUBMIT: 'thanks',
-        CLOSE: 'closed',
-        ESC: 'closed'
+        CLOSE: 'closed'
+      },
+      initial: 'first',
+      states: {
+        first: {},
+        second: {}
       }
     },
     thanks: {
@@ -40,35 +44,35 @@ const feedbackMachine = Machine({
 
 const simplePaths = getSimplePaths(feedbackMachine);
 
-describe('feedback app (manual tests)', () => {
-  it('should show the thanks screen when "Good" is clicked', () => {
-    const { getByText } = render(<Feedback />);
+// describe('feedback app (manual tests)', () => {
+//   it('should show the form screen when "Good" is clicked', () => {
+//     const { getByText } = render(<Feedback />);
 
-    // The question screen should be visible at first
-    assert.ok(getByText('How was your experience?'));
+//     // The question screen should be visible at first
+//     assert.ok(getByText('How was your experience?'));
 
-    // Click the "Good" button
-    const goodButton = getByText('Good');
-    fireEvent.click(goodButton);
+//     // Click the "Good" button
+//     const goodButton = getByText('Good');
+//     fireEvent.click(goodButton);
 
-    // Now the thanks screen should be visible
-    assert.ok(getByText('Thanks for your feedback.'));
-  });
+//     // Now the thanks screen should be visible
+//     assert.ok(getByText('Care to tell us why?'));
+//   });
 
-  it('should show the form screen when "Bad" is clicked', () => {
-    const { getByText } = render(<Feedback />);
+//   it('should show the form screen when "Bad" is clicked', () => {
+//     const { getByText } = render(<Feedback />);
 
-    // The question screen should be visible at first
-    assert.ok(getByText('How was your experience?'));
+//     // The question screen should be visible at first
+//     assert.ok(getByText('How was your experience?'));
 
-    // Click the "Bad" button
-    const badButton = getByText('Bad');
-    fireEvent.click(badButton);
+//     // Click the "Bad" button
+//     const badButton = getByText('Bad');
+//     fireEvent.click(badButton);
 
-    // Now the form screen should be visible
-    assert.ok(getByText('Care to tell us why?'));
-  });
-});
+//     // Now the form screen should be visible
+//     assert.ok(getByText('Care to tell us why?'));
+//   });
+// });
 
 describe('feedback app', () => {
   Object.keys(simplePaths).forEach(key => {
