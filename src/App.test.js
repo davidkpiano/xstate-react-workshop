@@ -106,10 +106,28 @@ describe('feedback app', () => {
           }
 
           // Add actions that will be executed (and asserted) to produce the events
-          async function executeAction(event) {}
+          async function executeAction(event) {
+            const actions = {
+              CLICK_GOOD: () => {
+                const goodButton = getByText('Good');
+                fireEvent.click(goodButton);
+              }
+            };
+
+            const action = actions[event.type];
+
+            if (!action) {
+              throw new Error(`Unknown action: ${event.type}`);
+            }
+
+            // Execute the action
+            await action();
+          }
 
           // Loop through each of the steps, assert the state, execute the action
           for (let step of path) {
+            await assertState(step.state);
+            await executeAction(step.event);
           }
 
           // Finally, assert that the target state is reached.
