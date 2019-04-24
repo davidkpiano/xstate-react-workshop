@@ -89,14 +89,21 @@ const feedbackMachine = Machine(
       },
       form: {
         on: {
-          SUBMIT: {
-            target: 'thanks',
-            actions: assign({
-              response: (context, event) => {
-                return event.value;
-              }
-            })
-          },
+          SUBMIT: [
+            {
+              target: 'thanks',
+              actions: assign({
+                response: (context, event) => {
+                  return event.value;
+                }
+              }),
+              cond: 'formValid'
+            },
+            {
+              target: 'form',
+              actions: 'alertInvalid'
+            }
+          ],
           CLOSE: 'closed'
         }
       },
@@ -113,6 +120,14 @@ const feedbackMachine = Machine(
     actions: {
       logExit: (context, event) => {
         console.log('exited', event);
+      },
+      alertInvalid: () => {
+        alert('You did not fill out the form!!');
+      }
+    },
+    guards: {
+      formValid: (context, event) => {
+        return event.value.length > 0;
       }
     }
   }
@@ -121,6 +136,7 @@ const feedbackMachine = Machine(
 export function Feedback() {
   const [current, send] = useMachine(feedbackMachine);
 
+  console.log('RENDERED');
   console.log(current.context);
 
   return current.matches('question') ? (
