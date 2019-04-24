@@ -37,8 +37,6 @@ function FormScreen({ onSubmit, onClose }) {
       onSubmit={e => {
         e.preventDefault();
 
-        console.log('RESPONSE:', response);
-
         onSubmit(response);
       }}
     >
@@ -69,6 +67,19 @@ function ThanksScreen({ onClose, response = '' }) {
   );
 }
 
+const formConfig = {
+  initial: 'pending',
+  states: {
+    pending: {
+      on: {
+        SUBMIT: 'loading' // add guard
+      }
+    },
+    loading: {}, // handle SUCCESS
+    submitted: {}
+  }
+};
+
 const feedbackMachine = Machine(
   {
     initial: 'question',
@@ -87,26 +98,7 @@ const feedbackMachine = Machine(
         },
         onExit: ['logExit']
       },
-      form: {
-        on: {
-          SUBMIT: [
-            {
-              target: 'thanks',
-              actions: assign({
-                response: (context, event) => {
-                  return event.value;
-                }
-              }),
-              cond: 'formValid'
-            },
-            {
-              target: 'form',
-              actions: 'alertInvalid'
-            }
-          ],
-          CLOSE: 'closed'
-        }
-      },
+      form: formConfig,
       thanks: {
         onEntry: 'logEntered',
         on: {
@@ -118,9 +110,7 @@ const feedbackMachine = Machine(
   },
   {
     actions: {
-      logExit: (context, event) => {
-        console.log('exited', event);
-      },
+      logExit: (context, event) => {},
       alertInvalid: () => {
         alert('You did not fill out the form!!');
       }
@@ -136,8 +126,7 @@ const feedbackMachine = Machine(
 export function Feedback() {
   const [current, send] = useMachine(feedbackMachine);
 
-  console.log('RENDERED');
-  console.log(current.context);
+  console.log(current.value); // state value
 
   return current.matches('question') ? (
     <QuestionScreen
