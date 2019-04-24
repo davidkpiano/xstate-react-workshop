@@ -1,46 +1,12 @@
 import React from 'react';
-import { Feedback } from './cheat/App';
-import { Machine } from 'xstate';
+import { Feedback, feedbackMachine } from './cheat/App';
 import { getSimplePaths } from '@xstate/graph';
 import { render, fireEvent, cleanup } from 'react-testing-library';
 import { assert } from 'chai';
 
 afterEach(cleanup);
 
-const feedbackMachine = Machine({
-  id: 'feedback',
-  initial: 'question',
-  states: {
-    question: {
-      on: {
-        CLICK_GOOD: 'form',
-        CLICK_BAD: 'form',
-        CLOSE: 'closed',
-        ESC: 'closed'
-      }
-    },
-    form: {
-      on: {
-        SUBMIT: 'thanks',
-        CLOSE: 'closed'
-      },
-      initial: 'first',
-      states: {
-        first: {},
-        second: {}
-      }
-    },
-    thanks: {
-      on: {
-        CLOSE: 'closed',
-        ESC: 'closed'
-      }
-    },
-    closed: {
-      type: 'final'
-    }
-  }
-});
+const events = feedbackMachine.events;
 
 const simplePaths = getSimplePaths(feedbackMachine);
 
@@ -116,11 +82,11 @@ describe('feedback app', () => {
           // Add actions that will be executed (and asserted) to produce the events
           async function executeAction(event) {
             const actions = {
-              CLICK_GOOD: () => {
+              GOOD: () => {
                 const goodButton = getByText('Good');
                 fireEvent.click(goodButton);
               },
-              CLICK_BAD: () => {
+              BAD: () => {
                 const badButton = getByText('Bad');
                 fireEvent.click(badButton);
               },
@@ -156,7 +122,22 @@ describe('feedback app', () => {
 
           // Loop through each of the steps, assert the state, execute the action
           for (let step of path) {
+            // Make sure that we're in the expected state
             await assertState(step.state);
+
+            const invalidEvents = events.filter(event => {
+              return !step.state.nextEvents.includes(event);
+            });
+
+            // Make sure that an invalid event does not change the state
+            for (const invalidEvent of invalidEvents) {
+              try {
+                await executeAction({ type: invalidEvent });
+              } catch (e) {}
+              await assertState(step.state);
+            }
+
+            // Execute the action
             await executeAction(step.event);
           }
 
