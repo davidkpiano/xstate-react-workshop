@@ -29,7 +29,7 @@ function QuestionScreen({ onClickGood, onClickBad, onClose }) {
   );
 }
 
-function FormScreen({ onSubmit, onClose }) {
+function FormScreen({ onSubmit, onClose, currentState }) {
   const [response, setResponse] = useState('');
 
   return (
@@ -40,20 +40,26 @@ function FormScreen({ onSubmit, onClose }) {
         onSubmit(response);
       }}
     >
-      <header>Care to tell us why?</header>
-      <textarea
-        name="response"
-        placeholder="Complain here"
-        onKeyDown={event => {
-          if (event.key === 'Escape') {
-            event.stopPropagation();
-          }
-        }}
-        value={response}
-        onChange={event => setResponse(event.target.value)}
-      />
-      <button>Submit</button>
-      <button title="close" type="button" onClick={onClose} />
+      {currentState.matches({ form: 'pending' }) ? (
+        <>
+          <header>Care to tell us why?</header>
+          <textarea
+            name="response"
+            placeholder="Complain here"
+            onKeyDown={event => {
+              if (event.key === 'Escape') {
+                event.stopPropagation();
+              }
+            }}
+            value={response}
+            onChange={event => setResponse(event.target.value)}
+          />
+          <button>Submit</button>
+          <button title="close" type="button" onClick={onClose} />
+        </>
+      ) : currentState.matches({ form: 'loading' }) ? (
+        <div>Submitting...</div>
+      ) : null}
     </Screen>
   );
 }
@@ -72,11 +78,20 @@ const formConfig = {
   states: {
     pending: {
       on: {
-        SUBMIT: 'loading' // add guard
+        SUBMIT: {
+          target: 'loading', // add guard
+          cond: 'formValid'
+        }
       }
     },
-    loading: {}, // handle SUCCESS
-    submitted: {}
+    loading: {
+      on: {
+        SUCCESS: 'submitted',
+        FAILURE: 'error'
+      }
+    }, // handle SUCCESS
+    submitted: {},
+    error: {}
   }
 };
 
@@ -142,6 +157,7 @@ export function Feedback() {
     />
   ) : current.matches('form') ? (
     <FormScreen
+      currentState={current}
       onSubmit={value => {
         send({ type: 'SUBMIT', value: value });
       }}
