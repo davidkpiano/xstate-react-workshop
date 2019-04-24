@@ -77,8 +77,6 @@ describe('feedback app', () => {
     describe(`state: ${key}`, () => {
       afterEach(cleanup);
 
-      console.log(key);
-
       paths.forEach(path => {
         const eventString = path.length
           ? 'via ' + path.map(step => step.event.type).join(', ')
@@ -86,7 +84,13 @@ describe('feedback app', () => {
 
         it(`reaches ${key} ${eventString}`, async () => {
           // Render the feedback app
-          const { getByText, queryByText } = render(<Feedback />);
+          const {
+            getByText,
+            queryByText,
+            getByTitle,
+            getByPlaceholderText,
+            baseElement
+          } = render(<Feedback />);
 
           // Add heuristics for asserting that the state is correct
           async function assertState(state) {
@@ -111,6 +115,28 @@ describe('feedback app', () => {
               CLICK_GOOD: () => {
                 const goodButton = getByText('Good');
                 fireEvent.click(goodButton);
+              },
+              CLICK_BAD: () => {
+                const badButton = getByText('Bad');
+                fireEvent.click(badButton);
+              },
+              CLOSE: () => {
+                const closeButton = getByTitle('close');
+                fireEvent.click(closeButton);
+              },
+              ESC: () => {
+                fireEvent.keyDown(baseElement, {
+                  key: 'Escape'
+                });
+              },
+              SUBMIT: () => {
+                const textarea = getByPlaceholderText('Complain here');
+                fireEvent.change(textarea, {
+                  target: { value: event.value }
+                });
+
+                const submitButton = getByText('Submit');
+                fireEvent.click(submitButton);
               }
             };
 
