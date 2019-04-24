@@ -11,5 +11,7 @@ const shortestPaths = getShortestPaths(feedbackMachine);
 Object.keys(shortestPaths).forEach(key => {
   const { state } = shortestPaths[key];
 
-  stories.add(key, () => <FeedbackScreen currentState={state} />);
+  stories.add(key, () => (
+    <FeedbackScreen currentState={state} send={() => {}} />
+  ));
 });
