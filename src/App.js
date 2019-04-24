@@ -80,6 +80,9 @@ const formConfig = {
       on: {
         SUBMIT: {
           target: 'loading', // add guard
+          actions: assign({
+            response: (ctx, e) => e.value
+          }),
           cond: 'formValid'
         }
       }
