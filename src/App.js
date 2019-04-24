@@ -1,6 +1,7 @@
 import React, { useReducer, useState } from 'react';
 import { Machine, interpret, assign } from 'xstate';
 import { useMachine } from '@xstate/react';
+import { feedbackMachine } from './feedbackMachine';
 
 function Screen({ children, onSubmit = undefined }) {
   if (onSubmit) {
@@ -73,7 +74,10 @@ function FormScreen({ onSubmit, onClose, currentState }) {
 }
 
 function ThanksScreen({ onClose, currentState }) {
-  const { message } = currentState.context.feedback;
+  const { message } = currentState.context.feedback
+    ? currentState.context.feedback
+    : { message: 'good!' };
+
   return (
     <Screen>
       <header>Thanks for your feedback: {message}</header>
@@ -81,131 +85,6 @@ function ThanksScreen({ onClose, currentState }) {
     </Screen>
   );
 }
-
-const formConfig = {
-  initial: 'pending',
-  states: {
-    pending: {
-      on: {
-        SUBMIT: {
-          target: 'loading', // add guard
-          actions: 'updateResponse',
-          cond: 'formValid'
-        }
-      }
-    },
-    loading: {
-      invoke: {
-        id: 'submitForm',
-        src: 'feedbackService',
-        onDone: {
-          target: 'submitted',
-          actions: assign({
-            feedback: (_, e) => e.data
-          })
-        },
-        onError: {
-          target: 'loading',
-          actions: () => {
-            console.log('Server is flaky, retrying...');
-          }
-        }
-      },
-      on: {
-        SUCCESS: 'submitted',
-        FAILURE: 'error'
-      }
-    }, // handle SUCCESS
-    submitted: {
-      type: 'final'
-    },
-    error: {}
-  }
-};
-
-const feedbackMachine = Machine(
-  {
-    initial: 'question',
-    context: {
-      response: '',
-      feedback: undefined,
-      dog: undefined
-    },
-    states: {
-      question: {
-        invoke: {
-          src: 'dogFetcher',
-          onDone: {
-            actions: assign({
-              dog: (_, e) => e.data.message
-            })
-          }
-        },
-        on: {
-          GOOD: {
-            target: 'thanks',
-            actions: 'logGood'
-          },
-          BAD: 'form',
-          CLOSE: 'closed'
-        },
-        onExit: ['logExit']
-      },
-      form: {
-        ...formConfig,
-        on: {
-          CLOSE: 'closed'
-        },
-        onDone: 'thanks'
-      },
-      thanks: {
-        onEntry: 'logEntered',
-        on: {
-          CLOSE: 'closed'
-        }
-      },
-      closed: {}
-    }
-  },
-  {
-    actions: {
-      logExit: (context, event) => {},
-      alertInvalid: () => {
-        alert('You did not fill out the form!!');
-      },
-      updateResponse: assign({
-        response: (ctx, e) => e.value
-      })
-    },
-    guards: {
-      formValid: (context, event) => {
-        return event.value.length > 0;
-      }
-    },
-    services: {
-      dogFetcher: () =>
-        fetch('https://dog.ceo/api/breeds/image/random').then(data =>
-          data.json()
-        ),
-      feedbackService: (context, event) =>
-        new Promise((resolve, reject) => {
-          setTimeout(() => {
-            const error = Math.random() < 0.9;
-            if (error) {
-              reject({
-                message: 'Something went wrong'
-              });
-            } else {
-              resolve({
-                timestamp: Date.now(),
-                message: 'Feedback: ' + context.response
-              });
-            }
-          }, 1500);
-        })
-    }
-  }
-);
 
 export function Feedback() {
   const [current, send] = useMachine(feedbackMachine);
