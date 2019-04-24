@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useReducer } from 'react';
 
 function Screen({ children, onSubmit = undefined }) {
   if (onSubmit) {
@@ -99,17 +99,19 @@ function feedbackReducer(state, event) {
 }
 
 export function Feedback() {
-  return (
-    <>
-      <QuestionScreen
-        onClickGood={() => {}}
-        onClickBad={() => {}}
-        onClose={() => {}}
-      />
-      <FormScreen onSubmit={value => {}} onClose={() => {}} />
-      <ThanksScreen onClose={() => {}} />
-    </>
-  );
+  const [current, send] = useReducer(feedbackReducer, 'question');
+
+  return current === 'question' ? (
+    <QuestionScreen
+      onClickGood={() => {}}
+      onClickBad={() => {}}
+      onClose={() => {}}
+    />
+  ) : current === 'form' ? (
+    <FormScreen onSubmit={value => {}} onClose={() => {}} />
+  ) : current === 'thanks' ? (
+    <ThanksScreen onClose={() => {}} />
+  ) : current === 'closed' ? null : null;
 }
 
 export function App() {
