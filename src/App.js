@@ -88,9 +88,14 @@ const formConfig = {
       on: {
         SUCCESS: 'submitted',
         FAILURE: 'error'
+      },
+      after: {
+        2000: 'submitted'
       }
     }, // handle SUCCESS
-    submitted: {},
+    submitted: {
+      type: 'final'
+    },
     error: {}
   }
 };
@@ -113,7 +118,10 @@ const feedbackMachine = Machine(
         },
         onExit: ['logExit']
       },
-      form: formConfig,
+      form: {
+        ...formConfig,
+        onDone: 'thanks'
+      },
       thanks: {
         onEntry: 'logEntered',
         on: {
