@@ -86,10 +86,14 @@ describe('feedback app', () => {
 
         it(`reaches ${key} ${eventString}`, async () => {
           // Render the feedback app
-          const {} = render(<Feedback />);
+          const { getByText } = render(<Feedback />);
 
           // Add heuristics for asserting that the state is correct
-          async function assertState(state) {}
+          async function assertState(state) {
+            if (state.matches('question')) {
+              assert.ok(getByText('How was your experience?'));
+            }
+          }
 
           // Add actions that will be executed (and asserted) to produce the events
           async function executeAction(event) {}
