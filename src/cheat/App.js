@@ -138,11 +138,8 @@ function ThanksScreen({ onClose }) {
   );
 }
 
-export function Feedback() {
-  const [current, send] = useMachine(Feedback.machine);
-  useKeyDown('Escape', () => send({ type: 'CLOSE' }));
-
-  const state = current.value;
+export function FeedbackScreen({ currentState, send }) {
+  const state = currentState.value;
 
   switch (state) {
     case 'question':
@@ -166,6 +163,14 @@ export function Feedback() {
     default:
       return null;
   }
+}
+
+export function Feedback({ initialState = 'question' }) {
+  const [current, send] = useMachine(Feedback.machine);
+
+  useKeyDown('Escape', () => send({ type: 'CLOSE' }));
+
+  return <FeedbackScreen currentState={current} send={send} />;
 }
 
 Feedback.machine = feedbackMachine;
